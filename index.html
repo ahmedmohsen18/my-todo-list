@@ -417,6 +417,52 @@
 
   var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
+  // ── Seed data (loaded once, only if a list has never been saved) ──
+
+  var SEED_DONE_AT = new Date(2026, 6, 28, 19, 0).getTime();   // Jul 28 at 7:00 PM
+  var SEED = {
+    dia_todo_personal_v1: [
+      { text: "Buy Miha's Ticket", done: false },
+      { text: "Book Accomodation", done: false },
+      { text: "Shirt for KK", done: false },
+      { text: "Buy Dalia's & Fifa's Tickets", done: true, completedAt: new Date(2026, 6, 28, 18, 57).getTime() }
+    ],
+    dia_todo_business_v1: [
+      { text: "New Merchants at Partner — 2b: 75k per month for 3 locations, nothing sent yet (Ahmed Abdelraouf, due 05/21/2026)", done: false },
+      { text: "Morshedy 3 locations activation at partner for free", done: false },
+      { text: "Raneen 3 places — Imbaba + Shubra Masr + Tanta + Abohawa 1", done: false },
+      { text: "kickoff an initiative on docs experience optimization", done: false },
+      { text: "Call centre to call awaiting activation knowing their limits and ask them would they agree to 25% of the limit without going to the branch?", done: false },
+      { text: "offers from Bosta + Mylerz + Aramex", done: false },
+      { text: "Thank you incentive for Makahzen people for working with mylo", done: false },
+      { text: "Quality Program Comments — move remaining supplies from old office (Hend Mohamed)", done: true, completedAt: SEED_DONE_AT },
+      { text: "mylo One — get approval from team managers (Ahmed Abdelraouf)", done: true, completedAt: SEED_DONE_AT },
+      { text: "Bi-Weekly session with agents to get their feedback — align with mylo one area managers for rotation-by-location feedback (Hend Mohamed)", done: true, completedAt: SEED_DONE_AT },
+      { text: "Work to have flyers inside the activation points — design with Eslam and team (Eslam Eltantawy, due 05/24/2026)", done: true, completedAt: SEED_DONE_AT },
+      { text: "Talk with Maha regarding the guy to leave to waive the 30k (Maha Gunied)", done: true, completedAt: SEED_DONE_AT },
+      { text: "Talking Points with Abdelraouf — June/July branches, podiums, t-shirts, mini needs", done: true, completedAt: SEED_DONE_AT },
+      { text: "Schedule Parlex Meeting (Ahmed Mohsen, due 05/21/2026)", done: true, completedAt: SEED_DONE_AT },
+      { text: "Send thanks shoutout to Abdelrahman & Walid Helmy + another for Osman and Networks team (due 05/30/2026)", done: true, completedAt: SEED_DONE_AT },
+      { text: "Nok Payments with Hatem (due 05/15/2026)", done: true, completedAt: SEED_DONE_AT },
+      { text: "Send to Eslam podium and t-shirts needs — 42 podiums and 300 t-shirts (Eslam Eltantawy, due 05/17/2026)", done: true, completedAt: SEED_DONE_AT },
+      { text: "Activation @ Partner analysis (Rahma Alaa)", done: true, completedAt: SEED_DONE_AT },
+      { text: "Follow up on Dream2000 2B activation points — no response received yet (Ahmed Mohsen, due 05/28/2026)", done: true, completedAt: SEED_DONE_AT },
+      { text: "Cold sales call plan for Moto — prepare and share for Moto activation (Ahmed Mohsen, due 05/29/2026)", done: true, completedAt: SEED_DONE_AT },
+      { text: "Follow up on unresponded thread in #general-ops — follow up if no response by EOW (Ahmed Mohsen, due 05/28/2026)", done: true, completedAt: SEED_DONE_AT },
+      { text: "Follow up on Piloting Timeline thread — no reply received yet (Ahmed Mohsen, due 05/28/2026)", done: true, completedAt: SEED_DONE_AT },
+      { text: "Follow up on activation rollout update (Mohamed Osman thread) — awaiting response (Ahmed Mohsen, due 05/29/2026)", done: true, completedAt: SEED_DONE_AT },
+      { text: "Cards Roadmap", done: true, completedAt: SEED_DONE_AT },
+      { text: "Work on a unified process for outbound calls for all teams (Ahmed Mohsen, due 07/11/2026)", done: true, completedAt: SEED_DONE_AT },
+      { text: "Score Cards to be live + new recognition program with People (Ahmed Mohsen, due 07/20/2026)", done: true, completedAt: SEED_DONE_AT }
+    ]
+  };
+
+  Object.keys(SEED).forEach(function (key) {
+    if (localStorage.getItem(key) === null) {
+      localStorage.setItem(key, JSON.stringify(SEED[key]));
+    }
+  });
+
   // ── Storage ──────────────────────────────────────────────
 
   function loadTasks(key) {
