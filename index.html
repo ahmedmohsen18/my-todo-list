@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My To Do List</title>
+<style>
+  :root {
+    --paper: #f7f3e9;
+    --card: #fffdf7;
+    --ink: #2b2620;
+    --ink-soft: #6b6259;
+    --ink-faint: #a89f93;
+    --rule: #d9d2c2;
+    --red: #c8553d;
+    --red-soft: #e8d5cf;
+    --blue: #3d6b8c;
+    --blue-soft: #d3dee6;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    background-color: var(--paper);
+    background-image: radial-gradient(circle, #e6dfd0 1px, transparent 1px);
+    background-size: 22px 22px;
+    color: var(--ink);
+    font-family: var(--serif);
+    min-height: 100%;
+  }
+
+  .layout {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 28px 24px 52px;
+  }
+
+  /* ── Toolbar ─────────────────────────────── */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+  .toolbar h1 {
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .status-msg {
+    flex: 1;
+    font-family: var(--sans);
+    font-size: 12px;
+    color: var(--ink-soft);
+    opacity: 0;
+    transition: opacity 0.3s;
+    text-align: right;
+    padding-right: 4px;
+  }
+  .status-msg.show { opacity: 1; }
+  .toolbar-btn {
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 10px 16px;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(43, 38, 32, 0.08);
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .toolbar-btn:hover { color: var(--ink); border-color: var(--ink-faint); }
+
+  /* ── Panels ──────────────────────────────── */
+  .panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    align-items: start;
+  }
+  @media (max-width: 720px) {
+    .panels { grid-template-columns: 1fr; }
+  }
+
+  .panel {
+    background: var(--card);
+    border-radius: 4px;
+    border-top: 4px solid;
+    box-shadow: 0 2px 12px rgba(43, 38, 32, 0.1);
+    padding: 34px 34px 20px;
+    display: flex;
+    flex-direction: column;
+    min-height: 420px;
+  }
+  .panel.personal { border-top-color: var(--red); }
+  .panel.business { border-top-color: var(--blue); }
+
+  .panel-header .panel-title {
+    font-size: 34px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .panel-title .dot { font-weight: 700; }
+  .panel.personal .dot { color: var(--red); }
+  .panel.business .dot { color: var(--blue); }
+  .panel-header .panel-subtitle {
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-top: 6px;
+  }
+  .panel-header .divider {
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    height: 4px;
+    margin: 16px 0 20px;
+  }
+
+  /* ── Add row ─────────────────────────────── */
+  .add-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .add-input {
+    flex: 1;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 16px;
+    color: var(--ink);
+    background: var(--card);
+    border: 1.5px solid var(--rule);
+    border-radius: 4px;
+    padding: 12px 14px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .panel.personal .add-input:focus { border-color: var(--red); }
+  .panel.business .add-input:focus { border-color: var(--blue); }
+  .add-input::placeholder { color: var(--ink-faint); font-style: italic; }
+  .add-btn {
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 0 22px;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(43, 38, 32, 0.15);
+    transition: filter 0.15s;
+  }
+  .panel.personal .add-btn { background: var(--red); }
+  .panel.business .add-btn { background: var(--blue); }
+  .add-btn:hover { filter: brightness(1.08); }
+
+  /* ── Task list ───────────────────────────── */
+  .task-list { list-style: none; flex: 1; }
+  .task-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px 2px;
+    border-bottom: 1px solid var(--rule);
+    animation: slide-in 0.25s ease;
+  }
+  @keyframes slide-in {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .task-circle {
+    flex: none;
+    width: 22px;
+    height: 22px;
+    margin-top: 1px;
+    border: 2px solid;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+    transition: background-color 0.15s;
+  }
+  .panel.personal .task-circle { border-color: var(--red); }
+  .panel.business .task-circle { border-color: var(--blue); }
+  .panel.personal .task-circle:hover { background: var(--red-soft); }
+  .panel.business .task-circle:hover { background: var(--blue-soft); }
+
+  .task-body { flex: 1; min-width: 0; }
+  .task-text {
+    font-size: 17px;
+    line-height: 1.45;
+    cursor: text;
+    word-wrap: break-word;
+  }
+  .task-edit {
+    width: 100%;
+    font-family: var(--serif);
+    font-size: 17px;
+    line-height: 1.45;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 2px 6px;
+    outline: none;
+  }
+  .task-meta {
+    font-family: var(--sans);
+    font-size: 11px;
+    color: var(--ink-faint);
+    margin-top: 4px;
+  }
+
+  .task-delete {
+    flex: none;
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1;
+    color: var(--ink-faint);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 6px;
+    margin-top: -1px;
+    opacity: 0;
+    transition: opacity 0.15s, color 0.15s;
+  }
+  .task-row:hover .task-delete { opacity: 1; }
+  .task-delete:hover { color: var(--red); }
+
+  .empty-state {
+    font-style: italic;
+    font-size: 15px;
+    color: var(--ink-faint);
+    padding: 26px 2px;
+  }
+
+  /* ── Completed drawer ────────────────────── */
+  .completed-section { margin-top: 14px; }
+  .completed-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 12px 2px;
+  }
+  .panel.personal .completed-toggle { color: var(--red); }
+  .panel.business .completed-toggle { color: var(--blue); }
+  .completed-toggle .arrow {
+    display: inline-block;
+    font-size: 9px;
+    transition: transform 0.2s;
+  }
+  .completed-section.open .arrow { transform: rotate(90deg); }
+  .completed-toggle .count-badge {
+    margin-left: auto;
+    font-size: 10px;
+    color: var(--ink);
+    border-radius: 10px;
+    padding: 3px 9px;
+  }
+  .panel.personal .count-badge { background: #eebf8f; }
+  .panel.business .count-badge { background: #a8c4d8; }
+
+  .completed-list { list-style: none; display: none; }
+  .completed-section.open .completed-list { display: block; }
+  .completed-section .empty-state { display: none; padding: 12px 2px 16px; }
+  .completed-section.open .empty-state.visible { display: block; }
+
+  .completed-list .task-text {
+    text-decoration: line-through;
+    color: var(--ink-soft);
+    cursor: default;
+  }
+  .completed-list .task-circle {
+    border-color: var(--ink-faint);
+    background: var(--ink-faint);
+  }
+  .completed-list .task-circle:hover { background: var(--card); }
+
+  /* ── Panel footer ────────────────────────── */
+  .panel-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--rule);
+    margin-top: 4px;
+    padding: 16px 2px 8px;
+    font-family: var(--sans);
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+  .clear-completed {
+    color: var(--ink-soft);
+    background: none;
+    border: none;
+    font-family: var(--sans);
+    font-size: 12px;
+    text-decoration: underline;
+    cursor: pointer;
+    transition: color 0.15s;
+  }
+  .clear-completed:hover { color: var(--red); }
+
+  /* ── Export modal ────────────────────────── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(43, 38, 32, 0.45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    z-index: 10;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--card);
+    border-radius: 4px;
+    box-shadow: 0 8px 40px rgba(43, 38, 32, 0.35);
+    max-width: 560px;
+    width: 100%;
+    padding: 28px;
+  }
+  .modal h2 { font-size: 22px; margin-bottom: 8px; }
+  .modal p {
+    font-family: var(--sans);
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-bottom: 14px;
+  }
+  .modal textarea {
+    width: 100%;
+    height: 220px;
+    font-family: Menlo, Consolas, monospace;
+    font-size: 12px;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 12px;
+    resize: vertical;
+    outline: none;
+  }
+  .modal .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 14px;
+  }
+
+  /* ── Print ───────────────────────────────── */
+  @media print {
+    html, body { background: #fff; }
+    .toolbar-btn, .add-row, .task-delete, .clear-completed, .status-msg, .modal-overlay { display: none !important; }
+    .panel { box-shadow: none; border: 1px solid var(--rule); break-inside: avoid; }
+    .panels { gap: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <div class="toolbar">
+    <h1>My Lists</h1>
+    <span class="status-msg" id="status-msg"></span>
+    <button class="toolbar-btn" id="export-btn">Export backup</button>
+    <button class="toolbar-btn" id="import-btn">Import backup</button>
+  </div>
+
+  <div class="panels" id="panels"></div>
+
+</div>
+
+<div class="modal-overlay" id="export-modal">
+  <div class="modal">
+    <h2>Backup JSON</h2>
+    <p>Copy the text below and save it somewhere safe. You can paste it back later with “Import backup”.</p>
+    <textarea id="export-json" readonly></textarea>
+    <div class="modal-actions">
+      <button class="toolbar-btn" id="export-modal-close">Close</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="import-file" accept="application/json,.json" style="display:none">
+
+<script>
+(function () {
+  "use strict";
+
+  var PANELS = [
+    { id: "personal", title: "Personal", subtitle: "Life & Home", storageKey: "dia_todo_personal_v1" },
+    { id: "business", title: "Business", subtitle: "Work & Projects", storageKey: "dia_todo_business_v1" }
+  ];
+
+  var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+  // ── Storage ──────────────────────────────────────────────
+
+  function loadTasks(key) {
+    try {
+      var raw = localStorage.getItem(key);
+      if (!raw) return [];
+      var parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return [];
+      return parsed.filter(function (t) {
+        return t && typeof t.text === "string";
+      }).map(function (t) {
+        var task = { text: t.text, done: !!t.done };
+        if (t.done && typeof t.completedAt === "number") task.completedAt = t.completedAt;
+        return task;
+      });
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveTasks(key, tasks) {
+    localStorage.setItem(key, JSON.stringify(tasks));
+  }
+
+  // ── Helpers ──────────────────────────────────────────────
+
+  function formatCompletedAt(ts) {
+    var d = new Date(ts);
+    var hours = d.getHours();
+    var ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12;
+    if (hours === 0) hours = 12;
+    var minutes = String(d.getMinutes()).padStart(2, "0");
+    return "Completed " + MONTHS[d.getMonth()] + " " + d.getDate() + " at " + hours + ":" + minutes + " " + ampm;
+  }
+
+  function el(tag, className, text) {
+    var node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
+  }
+
+  var statusTimer = null;
+  function flashStatus(message) {
+    var node = document.getElementById("status-msg");
+    node.textContent = message;
+    node.classList.add("show");
+    clearTimeout(statusTimer);
+    statusTimer = setTimeout(function () { node.classList.remove("show"); }, 3000);
+  }
+
+  // ── Panel ────────────────────────────────────────────────
+
+  function createPanel(config) {
+    var tasks = loadTasks(config.storageKey);
+    var completedOpen = false;
+
+    var panel = el("section", "panel " + config.id);
+
+    // Header
+    var header = el("div", "panel-header");
+    var title = el("h2", "panel-title", config.title);
+    title.appendChild(el("span", "dot", "."));
+    header.appendChild(title);
+    header.appendChild(el("div", "panel-subtitle", config.subtitle));
+    header.appendChild(el("div", "divider"));
+    panel.appendChild(header);
+
+    // Add row
+    var addRow = el("div", "add-row");
+    var addInput = el("input", "add-input");
+    addInput.type = "text";
+    addInput.placeholder = "What needs doing?";
+    var addBtn = el("button", "add-btn", "Add");
+    addRow.appendChild(addInput);
+    addRow.appendChild(addBtn);
+    panel.appendChild(addRow);
+
+    // Active list
+    var activeList = el("ul", "task-list");
+    panel.appendChild(activeList);
+
+    // Completed drawer
+    var completedSection = el("div", "completed-section");
+    var toggle = el("button", "completed-toggle");
+    toggle.appendChild(el("span", "arrow", "▶"));
+    toggle.appendChild(el("span", null, "Completed"));
+    var countBadge = el("span", "count-badge", "0");
+    toggle.appendChild(countBadge);
+    completedSection.appendChild(toggle);
+    var completedEmpty = el("div", "empty-state", "No completed tasks yet.");
+    var completedList = el("ul", "completed-list");
+    completedSection.appendChild(completedEmpty);
+    completedSection.appendChild(completedList);
+    panel.appendChild(completedSection);
+
+    // Footer
+    var footer = el("div", "panel-footer");
+    var countLabel = el("span", null, "0 to do");
+    var clearBtn = el("button", "clear-completed", "Clear completed");
+    footer.appendChild(countLabel);
+    footer.appendChild(clearBtn);
+    panel.appendChild(footer);
+
+    function persist() {
+      saveTasks(config.storageKey, tasks);
+    }
+
+    function addTask() {
+      var text = addInput.value.trim();
+      if (!text) return;
+      tasks.push({ text: text, done: false });
+      addInput.value = "";
+      persist();
+      render();
+      addInput.focus();
+    }
+
+    function startEdit(task, textNode) {
+      var input = el("input", "task-edit");
+      input.type = "text";
+      input.value = task.text;
+      var finished = false;
+
+      function commit() {
+        if (finished) return;
+        finished = true;
+        var value = input.value.trim();
+        if (value) task.text = value;
+        persist();
+        render();
+      }
+      function cancel() {
+        if (finished) return;
+        finished = true;
+        render();
+      }
+
+      input.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") commit();
+        else if (e.key === "Escape") cancel();
+      });
+      input.addEventListener("blur", commit);
+
+      textNode.replaceWith(input);
+      input.focus();
+      input.setSelectionRange(input.value.length, input.value.length);
+    }
+
+    function buildRow(task) {
+      var row = el("li", "task-row");
+
+      var circle = el("button", "task-circle");
+      circle.title = task.done ? "Retrieve task" : "Complete task";
+      circle.addEventListener("click", function () {
+        if (task.done) {
+          task.done = false;
+          delete task.completedAt;
+        } else {
+          task.done = true;
+          task.completedAt = Date.now();
+        }
+        persist();
+        render();
+      });
+      row.appendChild(circle);
+
+      var body = el("div", "task-body");
+      var textNode = el("div", "task-text", task.text);
+      body.appendChild(textNode);
+      if (task.done && task.completedAt) {
+        body.appendChild(el("div", "task-meta", formatCompletedAt(task.completedAt)));
+      }
+      if (!task.done) {
+        textNode.addEventListener("click", function () { startEdit(task, textNode); });
+      }
+      row.appendChild(body);
+
+      var del = el("button", "task-delete", "×");
+      del.title = "Delete task";
+      del.addEventListener("click", function () {
+        tasks.splice(tasks.indexOf(task), 1);
+        persist();
+        render();
+      });
+      row.appendChild(del);
+
+      return row;
+    }
+
+    function render() {
+      var active = tasks.filter(function (t) { return !t.done; });
+      var completed = tasks.filter(function (t) { return t.done; });
+
+      activeList.textContent = "";
+      if (active.length === 0) {
+        activeList.appendChild(el("li", "empty-state", "Nothing here yet. Add your first task above."));
+      } else {
+        active.forEach(function (task) { activeList.appendChild(buildRow(task)); });
+      }
+
+      completedList.textContent = "";
+      completed.forEach(function (task) { completedList.appendChild(buildRow(task)); });
+      completedEmpty.classList.toggle("visible", completed.length === 0);
+
+      countBadge.textContent = String(completed.length);
+      countLabel.textContent = active.length + " to do";
+      completedSection.classList.toggle("open", completedOpen);
+    }
+
+    addBtn.addEventListener("click", addTask);
+    addInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") addTask();
+    });
+    toggle.addEventListener("click", function () {
+      completedOpen = !completedOpen;
+      render();
+    });
+    clearBtn.addEventListener("click", function () {
+      tasks = tasks.filter(function (t) { return !t.done; });
+      persist();
+      render();
+    });
+
+    render();
+    return panel;
+  }
+
+  var panelsRoot = document.getElementById("panels");
+  PANELS.forEach(function (config) {
+    panelsRoot.appendChild(createPanel(config));
+  });
+
+  // ── Export ───────────────────────────────────────────────
+
+  function buildBackup() {
+    return {
+      app: "dia-todo",
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      lists: {
+        personal: loadTasks("dia_todo_personal_v1"),
+        business: loadTasks("dia_todo_business_v1")
+      }
+    };
+  }
+
+  function tryDownload(json, filename) {
+    try {
+      var blob = new Blob([json], { type: "application/json" });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function showExportModal(json) {
+    var overlay = document.getElementById("export-modal");
+    var textarea = document.getElementById("export-json");
+    textarea.value = json;
+    overlay.classList.add("show");
+    textarea.focus();
+    textarea.select();
+  }
+
+  document.getElementById("export-modal-close").addEventListener("click", function () {
+    document.getElementById("export-modal").classList.remove("show");
+  });
+
+  document.getElementById("export-btn").addEventListener("click", function () {
+    var json = JSON.stringify(buildBackup(), null, 2);
+    var d = new Date();
+    var filename = "todo-backup-" + d.getFullYear() + "-" +
+      String(d.getMonth() + 1).padStart(2, "0") + "-" +
+      String(d.getDate()).padStart(2, "0") + ".json";
+
+    var downloaded = tryDownload(json, filename);
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(json).then(function () {
+        flashStatus(downloaded ? "Backup downloaded and copied to clipboard." : "Backup copied to clipboard.");
+      }, function () {
+        if (!downloaded) showExportModal(json);
+        else flashStatus("Backup downloaded.");
+      });
+    } else if (downloaded) {
+      flashStatus("Backup downloaded.");
+    } else {
+      showExportModal(json);
+    }
+  });
+
+  // ── Import ───────────────────────────────────────────────
+
+  function applyImport(text) {
+    var data;
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      alert("That doesn't look like valid JSON. Import cancelled.");
+      return;
+    }
+    if (!data || typeof data !== "object" || !data.lists || typeof data.lists !== "object") {
+      alert("Invalid backup: missing a \"lists\" object. Import cancelled.");
+      return;
+    }
+    var personal = Array.isArray(data.lists.personal) ? data.lists.personal : [];
+    var business = Array.isArray(data.lists.business) ? data.lists.business : [];
+    var total = personal.length + business.length;
+
+    var ok = confirm(
+      "Import " + total + " task" + (total === 1 ? "" : "s") +
+      " (" + personal.length + " personal, " + business.length + " business)?\n\n" +
+      "Warning: this REPLACES your current lists."
+    );
+    if (!ok) return;
+
+    localStorage.setItem("dia_todo_personal_v1", JSON.stringify(personal));
+    localStorage.setItem("dia_todo_business_v1", JSON.stringify(business));
+    location.reload();
+  }
+
+  var importFileInput = document.getElementById("import-file");
+  importFileInput.addEventListener("change", function () {
+    var file = importFileInput.files[0];
+    importFileInput.value = "";
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function () { applyImport(String(reader.result)); };
+    reader.readAsText(file);
+  });
+
+  document.getElementById("import-btn").addEventListener("click", function () {
+    var useFile = confirm("Import backup:\n\nOK — choose a backup file\nCancel — paste the JSON text instead");
+    if (useFile) {
+      importFileInput.click();
+    } else {
+      var text = prompt("Paste your backup JSON here:");
+      if (text) applyImport(text);
+    }
+  });
+})();
+</script>
+</body>
+</html>
